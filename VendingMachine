@@ -1,0 +1,141 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <fstream>
+using namespace std;
+struct Item 
+{
+	string option;
+	double price;
+	int quantity;
+};
+
+void fileToStructVector(vector<Item>& vec, fstream& fs) 
+{
+	//fs.open("optionInputFile.txt", ios::in); File already open...
+	string o; //struct option variables shortened
+	double p;
+	int q;
+	while (!fs.eof()) 
+	{
+		fs >> o >> p >> q;
+		// option temp{ o,p,q }; error...
+		Item temp;
+		temp.option = o;
+		temp.price = p;
+		temp.quantity = q;
+		vec.push_back(temp);//add iitem to vector
+	}
+	cout << "Exiting Function...\n\n";
+}
+
+void displayOption(const Item& temp) 
+{
+	cout << temp.option << "\t" << temp.price << "\t" << temp.quantity << endl;
+}
+
+void displayVector(vector<Item>& optionList) 
+{
+	//Lets refactor our code
+	/*for (int i = 0; i < optionList.size(); i++) {
+	cout << endl;
+	cout << "Iteration " << i << endl;
+	cout << optionList[i].drink << endl;
+	cout << optionList[i].price << endl;
+	cout << optionList[i].quantity << endl;
+	}*/
+	for (const auto& item : optionList) //The ampersand is for efficiency and the const is to
+		//prevent changing of item
+		displayOption(item);
+}
+
+int getChoice()
+{
+	cout << "Pleasec chose your your option 1-6 or 0 to quit: " << endl;
+	int choice;
+	cin >> choice;
+
+	return choice;
+}
+
+bool checkAvailability(const vector<Item> v, int choice)
+{
+
+	if (v.at(choice - 1).quantity > 0)
+		return true;
+
+	return false;
+}
+
+void displayNameAndPrice(const vector<Item> v, int choice)
+{
+	//display Item name and its price;
+	cout <<"\nYour item is: "<< v.at(choice - 1).option << ". Price: " << v.at(choice - 1).price << endl;
+
+}
+
+void createPayment(double price, double custAmount)
+{
+	if (custAmount >= price) //accepted c payment and here give change
+		cout << "\n" << custAmount - price << endl;
+	else
+		cout << "\nPlease insert at least " << price - custAmount << endl;
+
+}
+
+void updateQty(vector<Item> &v, int choice)
+{
+	v.at(choice - 1).quantity--;
+
+}
+
+void displayStats(vector<Item>& v)
+{
+	double totalSale(0);
+	for (unsigned int i = 0; i < v.size(); i++)
+	{
+		cout << v.at(i).option << " " << 20 - v.at(i).quantity << endl;
+		totalSale += (20 - v.at(i).quantity)* v.at(i).price;
+	}
+
+	cout << "Total Sale is: " << totalSale << endl;
+}
+
+int main() 
+{
+	
+	//fstream fout;
+	//fout.open("outputFile.txt", ios::out | ios::app);
+	fstream fin;
+	fin.open("VendingMachineProducts.txt", ios::in);
+	vector<Item> itemList;
+	fileToStructVector(itemList, fin);
+	while (true)
+	{
+		system("cls");
+	displayVector(itemList);
+
+	int choice;
+	choice = getChoice();
+	if (choice == 0)
+		break;
+	//checkAvailability(itemList, choice);
+	if (checkAvailability(itemList, choice) == false)
+		cout << "Sorry, the item is not available." << endl;
+	else
+	{ 
+		double payment;
+		displayNameAndPrice(itemList, choice);
+		cout << "Please insert the bill: ";
+		cin >> payment;
+		createPayment(itemList.at(choice-1).price, payment);
+		updateQty(itemList, choice);
+		//displayVector(itemList);
+	}
+
+	}//end while
+
+	displayStats(itemList);
+
+	return 0;
+}
